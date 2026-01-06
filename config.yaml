@@ -1,0 +1,12 @@
+app:
+  port: "8080"
+  gin_mode: debug
+
+postgres:
+  master_dsn: "postgres://postgres:pass@localhost:5432/shortener?sslmode=disable"
+  slaves_dsn: []
+
+redis:
+  addr: "localhost:6379"
+  password: ""
+  db: 0

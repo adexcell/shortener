@@ -2,6 +2,22 @@ DC := docker compose
 PROJECT := shortener
 
 .PHONY:
+migrate-up: ## Запуск migrate up
+	migrate -path ./migrations \
+	-database "postgres://postgres:pass@localhost:5432/shortener?sslmode=disable" up
+
+.PHONY:
+migrate-force-0: ## Запуск migrate force 0
+	migrate -path ./migrations \
+	-database "postgres://postgres:pass@localhost:5432/shortener?sslmode=disable" force 0
+
+.PHONY:
+migrate-force-1: ## Запуск migrate force 0
+	migrate -path ./migrations \
+	-database "postgres://postgres:pass@localhost:5432/shortener?sslmode=disable" force 1
+
+
+.PHONY:
 up:      ## Запуск в фоне 	
 	$(DC) -p $(PROJECT) up -d 
 
