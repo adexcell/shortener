@@ -47,11 +47,13 @@ type ShortenerPostgres interface {
 	GetLongURL(ctx context.Context, shortCode string) (string, error)
 	SaveClick(ctx context.Context, shortCode, ip, userAgent string) error
 	GetDetailedStats(ctx context.Context, shortCode string) (Stats, error)
+	Close() error
 }
 
 type ShortenerRedis interface {
 	SetWithExpiration(ctx context.Context, key string, value any, expiration time.Duration) error
 	Get(ctx context.Context, key string) (string, error)
+	Close() error
 }
 
 type ShortenerUsecase interface {

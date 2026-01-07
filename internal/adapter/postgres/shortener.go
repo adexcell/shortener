@@ -21,7 +21,7 @@ func (p *ShortenerPostgres) Save(ctx context.Context, shortCode, longURL string)
 	if err != nil {
 		return err
 	}
-	
+
 	query := `
 	INSERT INTO urls (id, short_code, long_url)
 	VALUES ($1, $2, $3)`
@@ -44,17 +44,17 @@ func (p *ShortenerPostgres) SaveClick(ctx context.Context, shortCode, ip, userAg
 	if err != nil {
 		return err
 	}
-	
+
 	query := `
 	INSERT INTO analytics (id, short_code, ip, user_agent)
 	VALUES ($1, $2, $3, $4)`
 
 	_, err = p.db.ExecContext(
-		ctx, 
-		query, 
-		dto.ID, 
-		dto.ShortCode, 
-		dto.IP, 
+		ctx,
+		query,
+		dto.ID,
+		dto.ShortCode,
+		dto.IP,
 		dto.UserAgent,
 	)
 	return err
@@ -114,4 +114,8 @@ func (p *ShortenerPostgres) GetDetailedStats(ctx context.Context, shortCode stri
 	res := statsToDomain(dto)
 
 	return res, nil
+}
+
+func (p *ShortenerPostgres) Close() error {
+	return p.db.Master.Close()
 }
