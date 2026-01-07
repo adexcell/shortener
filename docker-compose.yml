@@ -15,7 +15,7 @@ services:
       - ./postgres_data:/var/lib/postgresql/data
       - ./migrations:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d shortener"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d shortener" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,3 +27,18 @@ services:
     ports:
       - "6379:6379"
 
+  shortener:
+    build: .
+    container_name: shortener_app
+    ports:
+      - "8080:8080"
+    environment:
+      - POSTGRES_MASTER_DSN=postgres://postgres:pass@postgres:5432/shortener?sslmode=disable
+      - REDIS_ADDR=redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    profiles:
+      - app

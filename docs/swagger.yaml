@@ -1,0 +1,136 @@
+basePath: /
+definitions:
+  controller.shortenRequest:
+    properties:
+      alias:
+        description: кастомное имя сокращенной ссылки
+        type: string
+      url:
+        description: URL - полная ссылка
+        type: string
+    required:
+    - url
+    type: object
+  controller.statsControllerDTO:
+    properties:
+      by_browser:
+        additionalProperties:
+          type: integer
+        type: object
+      by_date:
+        additionalProperties:
+          type: integer
+        type: object
+      clicked_at:
+        type: string
+      id:
+        type: string
+      ip:
+        type: string
+      short_code:
+        type: string
+      total_clicks:
+        type: integer
+      user_agent:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: URL Shortener Service with Analytics.
+  title: Shortener API
+  version: "1.0"
+paths:
+  /analytics/{short_url}:
+    get:
+      description: Get click statistics for a short URL
+      parameters:
+      - description: Short URL alias
+        in: path
+        name: short_url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.statsControllerDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get URL Analytics
+      tags:
+      - analytics
+  /s/{short_url}:
+    get:
+      description: Redirect user to the original long URL based on the short alias
+      parameters:
+      - description: Short URL alias
+        in: path
+        name: short_url
+        required: true
+        type: string
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Redirect to original URL
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Redirect to original URL
+      tags:
+      - shortener
+  /shorten:
+    post:
+      consumes:
+      - application/json
+      description: Generate a short alias for a given long URL
+      parameters:
+      - description: URL to shorten
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/controller.shortenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Shorten URL
+      tags:
+      - shortener
+swagger: "2.0"

@@ -29,3 +29,7 @@ func (r *ShortenerRedis) SetWithExpiration(
 func (r *ShortenerRedis) Get(ctx context.Context, key string) (string, error) {
 	return r.redis.Get(ctx, key)
 }
+
+func (r *ShortenerRedis) Close() error {
+	return r.redis.Close()
+}

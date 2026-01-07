@@ -23,6 +23,11 @@ type App struct {
 
 func Load() (*Config, error) {
 	cfg := config.New()
+
+	cfg.EnableEnv("")
+
+	_ = cfg.LoadEnvFiles(".env")
+
 	if err := cfg.LoadConfigFiles("config/config.yaml"); err != nil {
 		return nil, err
 	}

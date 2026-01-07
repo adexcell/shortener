@@ -38,6 +38,18 @@ type shortenRequest struct {
 	Alias string `json:"alias"`
 }
 
+// PostShortURL godoc
+// @Summary      Shorten URL
+// @Description  Generate a short alias for a given long URL
+// @Tags         shortener
+// @Accept       json
+// @Produce      json
+// @Param        input body shortenRequest true "URL to shorten"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      422  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /shorten [post]
 func (h *handler) PostShortURL(c *router.Context) {
 	var req shortenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -65,6 +77,15 @@ func (h *handler) PostShortURL(c *router.Context) {
 	c.JSON(http.StatusOK, router.H{"short_url": code})
 }
 
+// ConversionURL godoc
+// @Summary      Redirect to original URL
+// @Description  Redirect user to the original long URL based on the short alias
+// @Tags         shortener
+// @Produce      html
+// @Param        short_url path string true "Short URL alias"
+// @Success      302  {string}  string "Redirect to original URL"
+// @Failure      404  {object}  map[string]string
+// @Router       /s/{short_url} [get]
 func (h *handler) ConversionURL(c *router.Context) {
 	code := c.Param("short_url")
 	ip := c.ClientIP()
@@ -90,6 +111,15 @@ func (h *handler) ConversionURL(c *router.Context) {
 	c.Redirect(http.StatusFound, longURL)
 }
 
+// GetAnalytics godoc
+// @Summary      Get URL Analytics
+// @Description  Get click statistics for a short URL
+// @Tags         analytics
+// @Produce      json
+// @Param        short_url path string true "Short URL alias"
+// @Success      200  {object}  statsControllerDTO
+// @Failure      500  {object}  map[string]string
+// @Router       /analytics/{short_url} [get]
 func (h *handler) GetAnalytics(c *router.Context) {
 	code := c.Param("short_url")
 
