@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <!-- Подключаем CSS -->
+    <link rel="stylesheet" href="/static/main.css">
+</head>
+<body>
+
+    <div class="section">
+        <h2>Сократить ссылку</h2>
+        <input type="text" id="longUrl" placeholder="Введите длинную ссылку (http://...)">
+        <input type="text" id="alias" placeholder="Кастомный алиас (необязательно)">
+        <button id="shortenBtn">Сократить</button>
+        <div id="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Проверить аналитику</h2>
+        <input type="text" id="statsCode" placeholder="Введите короткий код">
+        <button id="statsBtn">Получить статистику</button>
+        <div id="statsResult"></div>
+    </div>
+
+    <!-- Подключаем JS -->
+    <script src="/static/main.js"></script>
+</body>
+</html>

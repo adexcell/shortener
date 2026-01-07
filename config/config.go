@@ -1,34 +1,29 @@
 package config
 
 import (
+	"github.com/adexcell/shortener/pkg/httpserver"
+	"github.com/adexcell/shortener/pkg/postgres"
+	"github.com/adexcell/shortener/pkg/redis"
+	"github.com/adexcell/shortener/pkg/router"
 	"github.com/wb-go/wbf/config"
 )
 
 type Config struct {
-	App      App      `mapstructure:"app"`
-	Postgres Postgres `mapstructure:"postgres"`
-	Redis    Redis    `mapstructure:"redis"`
+	App        App               `mapstructure:"app"`
+	HTTPServer httpserver.Config `mapstructure:"httpserver"`
+	Router     router.Config     `mapstructure:"router"`
+	Postgres   postgres.Config   `mapstructure:"postgres"`
+	Redis      redis.Config      `mapstructure:"redis"`
 }
 
 type App struct {
-	Port    string `mapstructure:"port"`
-	GinMode string `mapstructure:"gin_mode"`
-}
-
-type Postgres struct {
-	MasterDSN string   `mapstructure:"master_dsn"`
-	SlavesDSN []string `mapstructure:"slaves_dsn"`
-}
-
-type Redis struct {
-	Addr     string `mapstructure:"addr"`
-	Password string `mapstructure:"password"`
-	DB       int    `mapstructure:"db"`
+	AppName    string `mapstructure:"app_name"`
+	AppVersion string `mapstructure:"app_version"`
 }
 
 func Load() (*Config, error) {
 	cfg := config.New()
-	if err := cfg.LoadConfigFiles("config.yaml"); err != nil {
+	if err := cfg.LoadConfigFiles("config/config.yaml"); err != nil {
 		return nil, err
 	}
 
