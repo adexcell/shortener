@@ -6,15 +6,14 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/adexcell/shortener/config"
 	_ "github.com/adexcell/shortener/docs" // Swagger docs
 	"github.com/adexcell/shortener/internal/adapter/postgres"
 	"github.com/adexcell/shortener/internal/adapter/redis"
 	"github.com/adexcell/shortener/internal/controller"
-	"github.com/adexcell/shortener/internal/domain"
 	"github.com/adexcell/shortener/internal/usecase"
+	"github.com/adexcell/shortener/pkg/httpserver"
 	"github.com/adexcell/shortener/pkg/logger"
 	"github.com/adexcell/shortener/pkg/router"
 	swaggerFiles "github.com/swaggo/files"
@@ -22,44 +21,38 @@ import (
 )
 
 type App struct {
-	log      logger.Log
-	cfg      *config.Config
-	router   *router.Router
-	postgres domain.ShortenerPostgres
-	redis    domain.ShortenerRedis
+	cfg     *config.Config
+	log     logger.Log
+	router  *router.Router
+	server  *http.Server
+	closers []func() error
 }
 
-func NewApp() *App {
-	log := logger.NewLogger()
-
+func NewApp() (*App, error) {
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to load config")
+		return nil, err
 	}
 
-	log.Info().Msg("create router")
-	router := router.NewRouter(cfg.Router)
+	log := logger.NewLogger()
 
 	return &App{
-		log:    log,
 		cfg:    cfg,
-		router: router,
-	}
+		log:    log,
+		router: router.NewRouter(cfg.Router),
+	}, nil
 }
 
 func (a *App) Run() {
-	a.init()
+	a.initDependencies()
 
-	srv := &http.Server{
-		Addr:    ":" + a.cfg.HTTPServer.Port,
-		Handler: a.router,
-	}
+	srv := httpserver.New(a.cfg.HTTPServer, a.router)
 
 	// Go routine to start server
 	go func() {
 		a.log.Info().Str("port", a.cfg.HTTPServer.Port).Msg("Starting server")
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			a.log.Fatal().Err(err).Msg("Server listen failed")
+			a.log.Error().Err(err).Msg("Server listen failed")
 		}
 	}()
 
@@ -72,37 +65,28 @@ func (a *App) Run() {
 
 	// The context is used to inform the server it has 5 seconds to finish
 	// the request it is currently handling
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), a.cfg.HTTPServer.ShutdownTimeout)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
 		a.log.Fatal().Err(err).Msg("Server forced to shutdown")
 	}
-
-	// Close database connections
-	a.log.Info().Msg("Closing database connections...")
-	if err := a.postgres.Close(); err != nil {
-		a.log.Error().Err(err).Msg("Failed to close Postgres connection")
-	}
-	if err := a.redis.Close(); err != nil {
-		a.log.Error().Err(err).Msg("Failed to close Redis connection")
-	}
-
-	a.log.Info().Msg("Server exiting")
+	a.shutdown()
 }
 
-func (a *App) init() {
+func (a *App) initDependencies() {
 	storage, err := postgres.NewShortenerPostgres(a.cfg.Postgres)
 	if err != nil {
 		a.log.Fatal().Err(err).Msg("Failed to init Postgres")
 	}
-	a.postgres = storage
+	a.addCloser(storage.Close)
 
-	rdb := redis.NewShortenerRedis(a.cfg.Redis)
-	a.redis = rdb
+	redis := redis.NewShortenerRedis(a.cfg.Redis)
+	a.addCloser(redis.Close)
 
-	service := usecase.NewShortenerUsecase(a.postgres, a.redis, a.log)
-	shortenHandler := controller.NewShortenHandler(service, a.log)
+	shortenerUsecase := usecase.NewShortenerUsecase(storage, redis, a.log, a.cfg.Redis.TTL)
+	a.addCloser(shortenerUsecase.Close)
+	shortenHandler := controller.NewShortenHandler(shortenerUsecase, a.log)
 
 	a.router.Static("/static", "./static")
 	a.router.StaticFile("/", "./static/index.html")
@@ -112,4 +96,16 @@ func (a *App) init() {
 
 	a.log.Info().Msg("register shorten handler")
 	shortenHandler.Register(a.router)
+}
+
+func (a *App) addCloser(closer func() error) {
+	a.closers = append(a.closers, closer)
+}
+
+func (a *App) shutdown() {
+	for i := len(a.closers) - 1; i >= 0; i-- {
+		if err := a.closers[i](); err != nil {
+			a.log.Error().Err(err).Msg("failed to close resource")
+		}
+	}
 }

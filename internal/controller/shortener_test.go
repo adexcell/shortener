@@ -37,6 +37,11 @@ func (m *MockUsecase) GetStats(ctx context.Context, shortCode string) (domain.St
 	return args.Get(0).(domain.Stats), args.Error(1)
 }
 
+func (m *MockUsecase) Close() error {
+	// TODO:
+	return nil
+}
+
 // --- Setup ---
 
 func setupRouter() *router.Router {

@@ -11,7 +11,7 @@ help: ## Список команд
 
 .PHONY: test
 test: ## Запуск unit-тестов
-	go test -v ./internal/...
+	go test -v ./internal/... ./pkg/... ./cmd/... ./config/...
 
 .PHONY: start
 start: test ## Запуск всего проекта в Docker (DB + Migrations + App)

@@ -60,4 +60,5 @@ type ShortenerUsecase interface {
 	Shorten(ctx context.Context, longURL, alias string) (string, error)
 	GetOriginal(ctx context.Context, shortCode, ip, userAgent string) (string, error)
 	GetStats(ctx context.Context, shortCode string) (Stats, error)
+	Close() error
 }

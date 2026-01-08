@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/adexcell/shortener/internal/domain"
 	"github.com/adexcell/shortener/pkg/postgres"
@@ -67,48 +68,46 @@ func (p *ShortenerPostgres) GetDetailedStats(ctx context.Context, shortCode stri
 
 	// total clicks
 	query := `
-	SELECT COUNT(*) FROM analytics
-	WHERE short_code = $1`
+	WITH raw_stats AS (
+		-- Шаг 1: Берем все клики по коду один раз
+		SELECT 
+			clicked_at, 
+			user_agent,
+			COUNT(*) OVER() as total_count -- считает общее кол-во строк во всем результате
+		FROM analytics
+		WHERE short_code = $1
+	),
+	by_date AS (
+		-- Шаг 2: Группируем по датам
+		SELECT TO_CHAR(clicked_at, 'YYYY-MM-DD') as d, COUNT(*) as c
+		FROM raw_stats
+		GROUP BY d
+		ORDER BY d DESC
+		LIMIT 7
+	),
+	by_browser AS (
+		-- Шаг 3: Группируем по браузерам
+		SELECT user_agent as b, COUNT(*) as c
+		FROM raw_stats
+		GROUP BY b
+	)
+	-- Собираем всё в одну строку
+	SELECT 
+		COALESCE((SELECT total_count FROM raw_stats LIMIT 1), 0) as total,
+		COALESCE((SELECT jsonb_object_agg(d, c) FROM by_date), '{}') as dates,
+		COALESCE((SELECT jsonb_object_agg(b, c) FROM by_browser), '{}') as browsers;`
 
-	err := p.db.QueryRowContext(ctx, query, shortCode).Scan(&dto.TotalClicks)
+	var dates, browsers []byte
+	err := p.db.QueryRowContext(ctx, query, shortCode).Scan(&dto.TotalClicks, &dates, &browsers)
 	if err != nil {
 		return domain.Stats{}, err
 	}
 
-	// clicks by date
-	query = `
-	SELECT TO_CHAR(clicked_at, 'YYYY-MM-DD') as date, COUNT(*)
-	FROM analytics
-	WHERE short_code = $1
-	GROUP BY date
-	ORDER BY date DESC
-	LIMIT 7`
-
-	rows, err := p.db.QueryContext(ctx, query, shortCode)
-	if err == nil {
-		defer rows.Close()
-		for rows.Next() {
-			var date string
-			var count int
-			if err := rows.Scan(&date, &count); err == nil {
-				dto.ByDate[date] = count
-			}
-		}
+	if err := json.Unmarshal(dates, &dto.ByDate); err != nil {
+		return domain.Stats{}, err
 	}
-
-	// clicks by browser
-	query = `
-	SELECT user_agent, COUNT(*)
-	FROM analytics
-	WHERE short_code = $1
-	GROUP BY user_agent`
-
-	rows, _ = p.db.QueryContext(ctx, query, shortCode)
-	for rows.Next() {
-		var userAgent string
-		var count int
-		rows.Scan(&userAgent, &count)
-		dto.ByBrowser[userAgent] = count
+	if err := json.Unmarshal(browsers, &dto.ByBrowser); err != nil {
+		return domain.Stats{}, err
 	}
 
 	res := statsToDomain(dto)

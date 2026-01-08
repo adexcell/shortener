@@ -15,6 +15,10 @@ import (
 
 // --- Mocks ---
 
+const (
+	TTL = 24 * time.Hour
+)
+
 type MockPostgres struct {
 	mock.Mock
 }
@@ -64,12 +68,12 @@ func (m *MockRedis) Close() error {
 // --- Tests ---
 
 func TestShortenerUsecase_Shorten(t *testing.T) {
+	ctx := context.Background()
 	mockPg := new(MockPostgres)
 	mockRedis := new(MockRedis)
 	log := logger.NewLogger()
 
-	uc := usecase.NewShortenerUsecase(mockPg, mockRedis, log)
-	ctx := context.Background()
+	uc := usecase.NewShortenerUsecase(mockPg, mockRedis, log, TTL)
 	longURL := "https://example.com"
 
 	t.Run("success", func(t *testing.T) {
@@ -101,9 +105,9 @@ func TestShortenerUsecase_GetOriginal(t *testing.T) {
 	mockPg := new(MockPostgres)
 	mockRedis := new(MockRedis)
 	log := logger.NewLogger()
-
-	uc := usecase.NewShortenerUsecase(mockPg, mockRedis, log)
 	ctx := context.Background()
+
+	uc := usecase.NewShortenerUsecase(mockPg, mockRedis, log, TTL)
 	shortCode := "abcdef"
 	longURL := "https://example.com"
 	ip := "127.0.0.1"
@@ -147,7 +151,7 @@ func TestShortenerUsecase_GetOriginal(t *testing.T) {
 
 		url, err := uc.GetOriginal(ctx, shortCode, ip, ua)
 
-		assert.NoError(t, err) // The usecase returns empty string and nil error on not found (based on code reading)
+		assert.Error(t, err) // The usecase returns an error when URL is not found
 		assert.Empty(t, url)
 		mockPg.AssertExpectations(t)
 		mockRedis.AssertExpectations(t)

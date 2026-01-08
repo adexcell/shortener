@@ -1,6 +1,10 @@
 package main
 
-import "github.com/adexcell/shortener/cmd/app"
+import (
+	"log"
+
+	"github.com/adexcell/shortener/cmd/app"
+)
 
 // @title           Shortener API
 // @version         1.0
@@ -9,6 +13,9 @@ import "github.com/adexcell/shortener/cmd/app"
 // @BasePath        /
 
 func main() {
-	app := app.NewApp()
+	app, err := app.NewApp()
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
 	app.Run()
 }
