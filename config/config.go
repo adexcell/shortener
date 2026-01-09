@@ -9,16 +9,16 @@ import (
 )
 
 type Config struct {
-	App        App               `mapstructure:"app"`
-	HTTPServer httpserver.Config `mapstructure:"httpserver"`
-	Router     router.Config     `mapstructure:"router"`
-	Postgres   postgres.Config   `mapstructure:"postgres"`
-	Redis      redis.Config      `mapstructure:"redis"`
+	App        App
+	HTTPServer httpserver.Config
+	Router     router.Config
+	Postgres   postgres.Config
+	Redis      redis.Config
 }
 
 type App struct {
-	AppName    string `mapstructure:"app_name"`
-	AppVersion string `mapstructure:"app_version"`
+	Name    string `mapstructure:"app_name"`
+	Version string `mapstructure:"app_version"`
 }
 
 func Load() (*Config, error) {

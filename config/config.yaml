@@ -3,8 +3,12 @@ app:
   app_version: "0.0.1"
 
 httpserver:
-  port: "8080"
-  shutdown_timeout: 5s
+  addr: ":8080"
+  read_timeout: "5s"          # Время на чтение тела запроса. Защита от медленных клиентов.
+  write_timeout: "10s"        # Время на запись ответа
+  idle_timeout: "60s"         # Время жизни неактивного Keep-Alive соединения
+  shutdown_timeout: "15s"     # Graceful Shutdown timer
+  max_header_bytes: 1048576   # 1MB. Защита от Dos-атак через гигантские HTTP-заголовки.
 
 router:
   gin_mode: debug
@@ -20,4 +24,4 @@ redis:
   addr: "localhost:6379"
   password: ""
   db: 0
-  TTL: 24h
+  ttl: 24h

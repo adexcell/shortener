@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"net/http"
 	"os"
 	"os/signal"
@@ -46,15 +45,11 @@ func NewApp() (*App, error) {
 func (a *App) Run() {
 	a.initDependencies()
 
-	srv := httpserver.New(a.cfg.HTTPServer, a.router)
+	srv := httpserver.New(a.router, a.cfg.HTTPServer, a.log)
+	a.addCloser(srv.Close)
 
 	// Go routine to start server
-	go func() {
-		a.log.Info().Str("port", a.cfg.HTTPServer.Port).Msg("Starting server")
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			a.log.Error().Err(err).Msg("Server listen failed")
-		}
-	}()
+	srv.Start()
 
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 5 seconds.
 	quit := make(chan os.Signal, 1)
@@ -62,15 +57,6 @@ func (a *App) Run() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	a.log.Info().Msg("Shutting down server...")
-
-	// The context is used to inform the server it has 5 seconds to finish
-	// the request it is currently handling
-	ctx, cancel := context.WithTimeout(context.Background(), a.cfg.HTTPServer.ShutdownTimeout)
-	defer cancel()
-
-	if err := srv.Shutdown(ctx); err != nil {
-		a.log.Fatal().Err(err).Msg("Server forced to shutdown")
-	}
 	a.shutdown()
 }
 

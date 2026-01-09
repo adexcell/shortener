@@ -13,7 +13,7 @@ type Config struct {
 	Addr     string        `mapstructure:"addr"`
 	Password string        `mapstructure:"password"`
 	DB       int           `mapstructure:"db"`
-	TTL      time.Duration `mapstructure:"TTL"`
+	TTL      time.Duration `mapstructure:"ttl"`
 }
 
 func NewRedis(cfg Config) *RDB {
