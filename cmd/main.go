@@ -17,5 +17,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
-	app.Run()
+	
+	if err := app.Run(); err != nil {
+		log.Fatalf("error: %v", err)
+	}
 }

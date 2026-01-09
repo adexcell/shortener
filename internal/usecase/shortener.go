@@ -10,12 +10,12 @@ import (
 	"time"
 
 	"github.com/adexcell/shortener/internal/domain"
-	"github.com/adexcell/shortener/pkg/logger"
+	"github.com/adexcell/shortener/pkg/log"
 	"github.com/adexcell/shortener/pkg/postgres"
 )
 
 type ShortenerUsecase struct {
-	log      logger.Log
+	log      log.Log
 	postgres domain.ShortenerPostgres
 	redis    domain.ShortenerRedis
 	ttl      time.Duration
@@ -25,12 +25,7 @@ type ShortenerUsecase struct {
 	closed   bool
 }
 
-func NewShortenerUsecase(
-	p domain.ShortenerPostgres,
-	r domain.ShortenerRedis,
-	l logger.Log,
-	t time.Duration,
-) domain.ShortenerUsecase {
+func New(p domain.ShortenerPostgres, r domain.ShortenerRedis, l log.Log, t time.Duration) domain.ShortenerUsecase {
 	u := &ShortenerUsecase{
 		log:      l,
 		postgres: p,
@@ -96,7 +91,6 @@ func (u *ShortenerUsecase) GetOriginal(ctx context.Context, shortCode, ip, userA
 	default:
 		u.log.Warn().Str("code", shortCode).Msg("analytics channel full, dropping stat")
 	}
-	
 
 	return longURL, nil
 }

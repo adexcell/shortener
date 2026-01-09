@@ -16,6 +16,6 @@ type Config struct {
 	TTL      time.Duration `mapstructure:"ttl"`
 }
 
-func NewRedis(cfg Config) *RDB {
+func New(cfg Config) *RDB {
 	return redis.New(cfg.Addr, cfg.Password, cfg.DB)
 }

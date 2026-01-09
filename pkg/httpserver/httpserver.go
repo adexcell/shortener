@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/adexcell/shortener/pkg/logger"
+	"github.com/adexcell/shortener/pkg/log"
 )
 
 type Config struct {
@@ -21,12 +21,12 @@ type Config struct {
 
 type Server struct {
 	server          *http.Server
-	log               logger.Log
+	log               log.Log
 	shutdownTimeout time.Duration
 	shutdownCh      chan struct{}
 }
 
-func New(handler http.Handler, c Config, l logger.Log) *Server {
+func New(handler http.Handler, c Config, l log.Log) *Server {
 	return &Server{
 		server: &http.Server{
 			Addr:           c.Addr,

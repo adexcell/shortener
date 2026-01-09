@@ -12,8 +12,8 @@ type ShortenerRedis struct {
 	redis *redis.RDB
 }
 
-func NewShortenerRedis(cfg redis.Config) domain.ShortenerRedis {
-	redis := redis.NewRedis(cfg)
+func New(cfg redis.Config) domain.ShortenerRedis {
+	redis := redis.New(cfg)
 	return &ShortenerRedis{redis: redis}
 }
 

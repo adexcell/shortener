@@ -10,7 +10,7 @@ import (
 
 	"github.com/adexcell/shortener/internal/controller"
 	"github.com/adexcell/shortener/internal/domain"
-	"github.com/adexcell/shortener/pkg/logger"
+	"github.com/adexcell/shortener/pkg/log"
 	"github.com/adexcell/shortener/pkg/router"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -46,13 +46,13 @@ func (m *MockUsecase) Close() error {
 
 func setupRouter() *router.Router {
 	// Use test mode to suppress debug logs
-	return router.NewRouter(router.Config{GinMode: "test"})
+	return router.New(router.Config{GinMode: "test"})
 }
 
 // --- Tests ---
 
 func TestHandler_PostShortURL(t *testing.T) {
-	log := logger.NewLogger()
+	log := log.New()
 
 	t.Run("success", func(t *testing.T) {
 		mockUC := new(MockUsecase)
@@ -116,7 +116,7 @@ func TestHandler_PostShortURL(t *testing.T) {
 }
 
 func TestHandler_ConversionURL(t *testing.T) {
-	log := logger.NewLogger()
+	log := log.New()
 
 	t.Run("redirect success", func(t *testing.T) {
 		mockUC := new(MockUsecase)

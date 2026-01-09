@@ -8,7 +8,7 @@ import (
 
 	"github.com/adexcell/shortener/internal/domain"
 	"github.com/adexcell/shortener/internal/usecase"
-	"github.com/adexcell/shortener/pkg/logger"
+	"github.com/adexcell/shortener/pkg/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -71,9 +71,9 @@ func TestShortenerUsecase_Shorten(t *testing.T) {
 	ctx := context.Background()
 	mockPg := new(MockPostgres)
 	mockRedis := new(MockRedis)
-	log := logger.NewLogger()
+	log := log.New()
 
-	uc := usecase.NewShortenerUsecase(mockPg, mockRedis, log, TTL)
+	uc := usecase.New(mockPg, mockRedis, log, TTL)
 	longURL := "https://example.com"
 
 	t.Run("success", func(t *testing.T) {
@@ -104,10 +104,10 @@ func TestShortenerUsecase_Shorten(t *testing.T) {
 func TestShortenerUsecase_GetOriginal(t *testing.T) {
 	mockPg := new(MockPostgres)
 	mockRedis := new(MockRedis)
-	log := logger.NewLogger()
+	log := log.New()
 	ctx := context.Background()
 
-	uc := usecase.NewShortenerUsecase(mockPg, mockRedis, log, TTL)
+	uc := usecase.New(mockPg, mockRedis, log, TTL)
 	shortCode := "abcdef"
 	longURL := "https://example.com"
 	ip := "127.0.0.1"

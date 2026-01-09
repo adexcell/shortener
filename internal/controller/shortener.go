@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/adexcell/shortener/internal/domain"
-	"github.com/adexcell/shortener/pkg/logger"
+	"github.com/adexcell/shortener/pkg/log"
 	"github.com/adexcell/shortener/pkg/router"
 )
 
@@ -18,10 +18,10 @@ const (
 
 type handler struct {
 	usecase domain.ShortenerUsecase
-	log     logger.Log
+	log     log.Log
 }
 
-func NewShortenHandler(u domain.ShortenerUsecase, l logger.Log) router.Handler {
+func NewShortenHandler(u domain.ShortenerUsecase, l log.Log) router.Handler {
 	return &handler{usecase: u, log: l}
 }
 

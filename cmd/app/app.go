@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,7 +14,7 @@ import (
 	"github.com/adexcell/shortener/internal/controller"
 	"github.com/adexcell/shortener/internal/usecase"
 	"github.com/adexcell/shortener/pkg/httpserver"
-	"github.com/adexcell/shortener/pkg/logger"
+	"github.com/adexcell/shortener/pkg/log"
 	"github.com/adexcell/shortener/pkg/router"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -21,7 +22,7 @@ import (
 
 type App struct {
 	cfg     *config.Config
-	log     logger.Log
+	log     log.Log
 	router  *router.Router
 	server  *http.Server
 	closers []func() error
@@ -33,17 +34,19 @@ func NewApp() (*App, error) {
 		return nil, err
 	}
 
-	log := logger.NewLogger()
+	log := log.New()
 
 	return &App{
 		cfg:    cfg,
 		log:    log,
-		router: router.NewRouter(cfg.Router),
+		router: router.New(cfg.Router),
 	}, nil
 }
 
-func (a *App) Run() {
-	a.initDependencies()
+func (a *App) Run() error {
+	if err := a.initDependencies(); err != nil {
+		return err
+	}
 
 	srv := httpserver.New(a.router, a.cfg.HTTPServer, a.log)
 	a.addCloser(srv.Close)
@@ -58,19 +61,21 @@ func (a *App) Run() {
 	<-quit
 	a.log.Info().Msg("Shutting down server...")
 	a.shutdown()
+
+	return nil
 }
 
-func (a *App) initDependencies() {
-	storage, err := postgres.NewShortenerPostgres(a.cfg.Postgres)
+func (a *App) initDependencies() error {
+	storage, err := postgres.New(a.cfg.Postgres)
 	if err != nil {
-		a.log.Fatal().Err(err).Msg("Failed to init Postgres")
+		return fmt.Errorf("Failed to init Postgres: %w", err)
 	}
 	a.addCloser(storage.Close)
 
-	redis := redis.NewShortenerRedis(a.cfg.Redis)
+	redis := redis.New(a.cfg.Redis)
 	a.addCloser(redis.Close)
 
-	shortenerUsecase := usecase.NewShortenerUsecase(storage, redis, a.log, a.cfg.Redis.TTL)
+	shortenerUsecase := usecase.New(storage, redis, a.log, a.cfg.Redis.TTL)
 	a.addCloser(shortenerUsecase.Close)
 	shortenHandler := controller.NewShortenHandler(shortenerUsecase, a.log)
 
@@ -82,6 +87,8 @@ func (a *App) initDependencies() {
 
 	a.log.Info().Msg("register shorten handler")
 	shortenHandler.Register(a.router)
+
+	return nil
 }
 
 func (a *App) addCloser(closer func() error) {

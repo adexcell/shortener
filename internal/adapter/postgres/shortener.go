@@ -12,8 +12,8 @@ type ShortenerPostgres struct {
 	db *postgres.DB
 }
 
-func NewShortenerPostgres(cfg postgres.Config) (domain.ShortenerPostgres, error) {
-	db, err := postgres.NewPostgres(cfg)
+func New(cfg postgres.Config) (domain.ShortenerPostgres, error) {
+	db, err := postgres.New(cfg)
 	return &ShortenerPostgres{db: db}, err
 }
 
