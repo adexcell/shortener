@@ -8,16 +8,16 @@ import (
 	"github.com/adexcell/shortener/pkg/redis"
 )
 
-type ShortenerRedis struct {
+type Redis struct {
 	redis *redis.RDB
 }
 
 func New(cfg redis.Config) domain.ShortenerRedis {
 	redis := redis.New(cfg)
-	return &ShortenerRedis{redis: redis}
+	return &Redis{redis: redis}
 }
 
-func (r *ShortenerRedis) SetWithExpiration(
+func (r *Redis) SetWithExpiration(
 	ctx context.Context,
 	key string,
 	value any,
@@ -26,10 +26,10 @@ func (r *ShortenerRedis) SetWithExpiration(
 	return r.redis.SetWithExpiration(ctx, key, value, expiration)
 }
 
-func (r *ShortenerRedis) Get(ctx context.Context, key string) (string, error) {
+func (r *Redis) Get(ctx context.Context, key string) (string, error) {
 	return r.redis.Get(ctx, key)
 }
 
-func (r *ShortenerRedis) Close() error {
+func (r *Redis) Close() error {
 	return r.redis.Close()
 }

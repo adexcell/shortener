@@ -51,10 +51,8 @@ func (a *App) Run() error {
 	srv := httpserver.New(a.router, a.cfg.HTTPServer, a.log)
 	a.addCloser(srv.Close)
 
-	// Go routine to start server
 	srv.Start()
 
-	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 5 seconds.
 	quit := make(chan os.Signal, 1)
 
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

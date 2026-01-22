@@ -8,16 +8,16 @@ import (
 	"github.com/adexcell/shortener/pkg/postgres"
 )
 
-type ShortenerPostgres struct {
+type Postgres struct {
 	db *postgres.DB
 }
 
 func New(cfg postgres.Config) (domain.ShortenerPostgres, error) {
 	db, err := postgres.New(cfg)
-	return &ShortenerPostgres{db: db}, err
+	return &Postgres{db: db}, err
 }
 
-func (p *ShortenerPostgres) Save(ctx context.Context, shortCode, longURL string) error {
+func (p *Postgres) Save(ctx context.Context, shortCode, longURL string) error {
 	dto, err := shortenerToPostgresDTO(shortCode, longURL)
 	if err != nil {
 		return err
@@ -31,7 +31,7 @@ func (p *ShortenerPostgres) Save(ctx context.Context, shortCode, longURL string)
 	return err
 }
 
-func (p *ShortenerPostgres) GetLongURL(ctx context.Context, shortCode string) (string, error) {
+func (p *Postgres) GetLongURL(ctx context.Context, shortCode string) (string, error) {
 	var longURL string
 	query := `
 	SELECT long_url FROM urls
@@ -40,7 +40,7 @@ func (p *ShortenerPostgres) GetLongURL(ctx context.Context, shortCode string) (s
 	return longURL, err
 }
 
-func (p *ShortenerPostgres) SaveClick(ctx context.Context, shortCode, ip, userAgent string) error {
+func (p *Postgres) SaveClick(ctx context.Context, shortCode, ip, userAgent string) error {
 	dto, err := statsToPostgresDTO(shortCode, ip, userAgent)
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func (p *ShortenerPostgres) SaveClick(ctx context.Context, shortCode, ip, userAg
 	return err
 }
 
-func (p *ShortenerPostgres) GetDetailedStats(ctx context.Context, shortCode string) (domain.Stats, error) {
+func (p *Postgres) GetDetailedStats(ctx context.Context, shortCode string) (domain.Stats, error) {
 	var dto statsPostgresDTO
 	dto.ByDate = make(map[string]int)
 	dto.ByBrowser = make(map[string]int)
@@ -115,6 +115,6 @@ func (p *ShortenerPostgres) GetDetailedStats(ctx context.Context, shortCode stri
 	return res, nil
 }
 
-func (p *ShortenerPostgres) Close() error {
+func (p *Postgres) Close() error {
 	return p.db.Master.Close()
 }
