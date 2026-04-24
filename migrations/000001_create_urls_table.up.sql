@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS urls (
+    short_code VARCHAR(10) PRIMARY KEY,
+    original_url TEXT NOT NULL,
+    is_custom BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMPTZ,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
