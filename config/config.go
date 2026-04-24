@@ -1,41 +1,43 @@
 package config
 
 import (
-	"github.com/adexcell/shortener/pkg/httpserver"
+	"fmt"
+
+	httpserver "github.com/adexcell/shortener/pkg/http/server"
+	"github.com/adexcell/shortener/pkg/logger"
+	"github.com/adexcell/shortener/pkg/otel"
 	"github.com/adexcell/shortener/pkg/postgres"
-	"github.com/adexcell/shortener/pkg/redis"
-	"github.com/adexcell/shortener/pkg/router"
-	"github.com/wb-go/wbf/config"
+	"github.com/joho/godotenv"
+	"github.com/kelseyhightower/envconfig"
 )
 
-type Config struct {
-	App        App
-	HTTPServer httpserver.Config
-	Router     router.Config
-	Postgres   postgres.Config
-	Redis      redis.Config
-}
-
 type App struct {
-	Name    string `mapstructure:"app_name"`
-	Version string `mapstructure:"app_version"`
+	Name    string `envconfig:"APP_NAME"    required:"true"`
+	Version string `envconfig:"APP_VERSION" required:"true"`
 }
 
-func Load() (*Config, error) {
-	cfg := config.New()
+type Config struct {
+	App      App
+	HTTP     httpserver.Config
+	Logger   logger.Config
+	OTEL     otel.Config
+	Postgres postgres.Config
+	// Redis    redis.Config
+	Router string `envconfig:"GIN_MODE"`
+}
 
-	cfg.EnableEnv("")
+func New() (Config, error) {
+	var config Config
 
-	_ = cfg.LoadEnvFiles(".env")
-
-	if err := cfg.LoadConfigFiles("config/config.yaml"); err != nil {
-		return nil, err
+	err := godotenv.Load(".env")
+	if err != nil {
+		return config, fmt.Errorf("godotenv.Load: %w", err)
 	}
 
-	var res Config
-	if err := cfg.Unmarshal(&res); err != nil {
-		return nil, err
+	err = envconfig.Process("", &config)
+	if err != nil {
+		return config, fmt.Errorf("envconfig.Process: %w", err)
 	}
 
-	return &res, nil
+	return config, nil
 }

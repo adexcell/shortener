@@ -1,4 +1,2 @@
-.env
-postgres_data/
-LEARNING_GUIDE.md
-*.txt
+**/.env
+
