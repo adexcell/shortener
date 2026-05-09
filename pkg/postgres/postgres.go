@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Config holds the configuration parameters for the PostgreSQL connection.
 type Config struct {
 	User     string `envconfig:"POSTGRES_USER"     required:"true"`
 	Password string `envconfig:"POSTGRES_PASSWORD" required:"true"`
@@ -16,10 +17,12 @@ type Config struct {
 	DBName   string `envconfig:"POSTGRES_DB_NAME"  required:"true"`
 }
 
+// Pool wraps the pgxpool.Pool to provide a database connection pool.
 type Pool struct {
 	*pgxpool.Pool
 }
 
+// New creates a new PostgreSQL connection pool.
 func New(ctx context.Context, c Config) (*Pool, error) {
 	dsn := fmt.Sprintf("user=%s password=%s port=%s host=%s dbname=%s",
 		c.User,
@@ -39,9 +42,16 @@ func New(ctx context.Context, c Config) (*Pool, error) {
 		return nil, fmt.Errorf("pgxpool.NewWithConfig: %w", err)
 	}
 
+	if err := pool.Ping(ctx); err != nil {
+		return nil, fmt.Errorf("pool.Ping: %w", err)
+	}
+
+	log.Info().Msg("Connected to Postgres")
+
 	return &Pool{Pool: pool}, nil
 }
 
+// Close gracefully shuts down the database connection pool.
 func (p *Pool) Close() {
 	p.Pool.Close()
 

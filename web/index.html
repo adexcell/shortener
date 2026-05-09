@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexLink | Premium URL Shortener</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <div class="glass-bg"></div>
+    
+    <main class="container">
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">⚡</span>
+                <h1>NexLink</h1>
+            </div>
+            <p class="subtitle">Умное сокращение ссылок с мощной аналитикой</p>
+        </header>
+
+        <section class="card animate-up">
+            <div class="card-header">
+                <h2>Сократить ссылку</h2>
+                <p>Создайте короткую и запоминающуюся ссылку в один клик</p>
+            </div>
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="input-icon">🔗</span>
+                    <input type="text" id="longUrl" placeholder="Вставьте длинную ссылку (http://...)">
+                </div>
+                <div class="input-wrapper">
+                    <span class="input-icon">🏷️</span>
+                    <input type="text" id="alias" placeholder="Кастомный алиас (необязательно)">
+                </div>
+                <button id="shortenBtn" class="btn-primary">
+                    <span>Сократить</span>
+                    <div class="btn-loader" id="loader"></div>
+                </button>
+            </div>
+            <div id="result" class="result-container"></div>
+        </section>
+
+        <section class="card animate-up" style="animation-delay: 0.1s;">
+            <div class="card-header">
+                <h2>Аналитика</h2>
+                <p>Проверьте статистику переходов по вашему коду</p>
+            </div>
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="input-icon">📊</span>
+                    <input type="text" id="statsCode" placeholder="Введите короткий код или ссылку">
+                </div>
+                <button id="statsBtn" class="btn-secondary">Показать статистику</button>
+            </div>
+            <div id="statsResult" class="stats-container"></div>
+        </section>
+
+        <footer class="footer">
+            <p>&copy; 2026 NexLink Premium Service. Все права защищены.</p>
+        </footer>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

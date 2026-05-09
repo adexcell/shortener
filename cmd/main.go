@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/adexcell/shortener/config"
 	"github.com/adexcell/shortener/internal/app"
 	"github.com/adexcell/shortener/pkg/logger"
 	"github.com/adexcell/shortener/pkg/otel"
-	"github.com/rs/zerolog/log"
 )
 
 func main() {

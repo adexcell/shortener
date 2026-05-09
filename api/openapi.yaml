@@ -1,0 +1,123 @@
+openapi: 3.0.3
+info:
+  title: NexLink API
+  description: Premium URL Shortener Service with Analytics
+  version: 1.0.0
+servers:
+  - url: /api/v1
+    description: v1 API
+
+paths:
+  /shorten:
+    post:
+      summary: Create a short URL
+      operationId: createShorten
+      tags:
+        - shorten
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateShortenRequest'
+      responses:
+        '200':
+          description: Successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateShortenResponse'
+        '400':
+          description: Invalid input
+        '409':
+          description: Alias already exists
+
+  /s/{short_url}:
+    get:
+      summary: Redirect to original URL
+      operationId: redirect
+      tags:
+        - shorten
+      parameters:
+        - name: short_url
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '307':
+          description: Temporary redirect
+          headers:
+            Location:
+              schema:
+                type: string
+        '404':
+          description: URL not found
+
+  /analytics/{short_url}:
+    get:
+      summary: Get URL analytics
+      operationId: getAnalytics
+      tags:
+        - analytics
+      parameters:
+        - name: short_url
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsResponse'
+        '404':
+          description: URL not found
+
+components:
+  schemas:
+    CreateShortenRequest:
+      type: object
+      required:
+        - original_url
+      properties:
+        original_url:
+          type: string
+          format: uri
+          example: https://google.com
+        shorten_code:
+          type: string
+          minLength: 6
+          maxLength: 20
+          example: my-custom-link
+    
+    CreateShortenResponse:
+      type: object
+      properties:
+        shorten_code:
+          type: string
+          example: my-custom-link
+
+    AnalyticsResponse:
+      type: object
+      properties:
+        total_clicks:
+          type: integer
+          example: 125
+        by_date:
+          type: object
+          additionalProperties:
+            type: integer
+          example:
+            "2023-10-27": 45
+            "2023-10-28": 80
+        by_browser:
+          type: object
+          additionalProperties:
+            type: integer
+          example:
+            "Chrome": 90
+            "Firefox": 20
+            "Safari": 15
